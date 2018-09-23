@@ -36,4 +36,4 @@ bot.on("ready",function(){
     }).catch((reason)=>console.error(reason));
 });
 
-bot.login({clientId:"",clientSecret:""}).catch((reason)=>console.error(reason));
+bot.login({clientId:"493464313739214858",clientSecret:""}).catch((reason)=>console.error(reason));
