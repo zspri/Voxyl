@@ -1,0 +1,86 @@
+@import url('https://fonts.googleapis.com/css?family=Roboto:400,500');
+
+body {
+    font-family: 'Roboto', sans-serif;
+    margin: 0;
+    background-color: #2f3136;
+    color: white;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+}
+
+.editor-container {
+    display: flex;
+    flex-direction: row;
+    flex-grow: 1;
+}
+
+.sidebar {
+    width: 200px;
+    background-color: rgb(35,39,42);
+}
+
+.titlebar {
+    -webkit-app-region: drag;
+    padding: .4em 0;
+    text-align: right;
+    user-select: none;
+    background-color: #202124;
+}
+
+.titlebar .action {
+    -webkit-app-region: no-drag;
+    padding: 0 15px;
+    display: inline;
+    opacity: .8;
+    cursor: pointer;
+}
+
+.titlebar .action svg {
+    vertical-align: middle;
+}
+
+.titlebar .action.left {
+    float: left;
+    font-family: 'Segoe MDL2 Assets';
+    padding-top: 2px;
+}
+
+.titlebar .action:hover {
+    opacity: 1;
+}
+
+.titlebar .action.cls:hover * {
+    fill: red;
+}
+
+.title {
+    -webkit-app-region: drag;
+    padding: .8rem;
+    font-size: .9em;
+    box-shadow: 0 1px 0 rgba(0,0,0,.2), 0 2px 0 rgba(0,0,0,.06);
+    background-color: inherit;
+    user-select: none;
+    background-color: #202124;
+}
+
+.title .topic {
+    font-weight: 500;
+    cursor: default;
+}
+
+.title .desc {
+    font-size: .9em;
+    opacity: .8;
+    padding-left: 5px;
+    border-left: 1px solid rgba(255,255,255,.3);
+    margin-left: 5px;
+    display: inline-block;
+    cursor: default;
+}
+
+.editor {
+    flex-grow: 1;
+    position: relative;
+}
