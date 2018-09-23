@@ -34,7 +34,6 @@ bot.on("ready",function(){
         smallImageKey: "logo",
         smallImageText: "Voxyl Editor"
     }).catch((reason)=>console.error(reason));
-    bot.createLobby();
 });
 
 bot.login({clientId:"",clientSecret:""}).catch((reason)=>console.error(reason));
