@@ -44,9 +44,13 @@
     </div>
     <!-- Just some js garbage below -->
     <script src="assets/jquery.min.js"></script>
+    <script src="assets/jquery-ui.min.js"></script>
     <script src="assets/codemirror.js"></script>
     <script>
         require('./renderer.js');
+        $(function() {
+            $(".title .tabs").sortable();
+        });
     </script>
 </body>
 </html>
