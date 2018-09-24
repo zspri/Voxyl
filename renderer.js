@@ -114,18 +114,39 @@ $(".action.min").click(function() {
 $("#title-ctx-menu").click(function() {
     var ctxMenu = new Menu();
     ctxMenu.append(new MenuItem({
-        label: "Open",
-        click: openFile
+        label: "New File",
+        accelerator: "CommandOrControl+N"
     }));
     ctxMenu.append(new MenuItem({
+        label: "Open File...",
+        click: openFile,
+        accelerator: "CommandOrControl+O"
+    }));
+    ctxMenu.append(new MenuItem({
+        label: "Open Folder..."
+    }));
+    ctxMenu.append(new MenuItem({type: "separator"}));
+    ctxMenu.append(new MenuItem({
         label: "Save",
-        click: saveFile
+        click: saveFile,
+        accelerator: "CommandOrControl+S"
     }));
     ctxMenu.append(new MenuItem({
         label: "Save As",
-        click: saveFileAs
+        click: saveFileAs,
+        accelerator: "CommandOrControl+Shift+S"
+    }));
+    ctxMenu.append(new MenuItem({type: "separator"}));
+    ctxMenu.append(new MenuItem({
+        label: "Settings",
+        accelerator: "CommandOrControl+,"
     }));
     ctxMenu.popup({});
+});
+
+$(".title .tabs .tab").click(function() {
+    $(".title .tabs .tab").removeClass("active");
+    $(this).addClass("active");
 });
 
 bot.on("ready",function(){
