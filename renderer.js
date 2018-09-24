@@ -54,11 +54,11 @@ function openFile() {
     }
     fs.readFile(filesToOpen[0], (err, data) => {
         if (err) throw err;
+        addTab(path.basename(filesToOpen[0]));
         codemirror.setValue(data.toString());
         activeDir = path.dirname(filesToOpen[0]);
         activeFile = filesToOpen[0];
         updateRPC();
-        $(".tabs .tab.active .name").html(path.basename(filesToOpen[0]));
         changeActiveDir();
     });
 }
@@ -88,6 +88,10 @@ function saveFile() {
     });
 }
 
+function newFile() {
+    addTab("Untitled");
+}
+
 $(".action.cls").click(function() {
     remote.app.quit();
 });
@@ -109,6 +113,7 @@ $("#title-ctx-menu").click(function() {
     var ctxMenu = new Menu();
     ctxMenu.append(new MenuItem({
         label: "New File",
+        click: newFile,
         accelerator: "CommandOrControl+N"
     }));
     ctxMenu.append(new MenuItem({
@@ -139,7 +144,8 @@ $("#title-ctx-menu").click(function() {
 });
 
 function addTab(name) {
-    $('.title .tabs').append(`<div class="tab"><div class="name">${name}</div><div class="close"><i class="fas fa-times"></i></div></div>`);
+    $(".title .tabs .tab").removeClass("active");
+    $('.title .tabs').append(`<div class="tab active"><div class="name">${name}</div><div class="close"><i class="fas fa-times"></i></div></div>`);
 }
 
 $(document).on("click", ".title .tabs .tab .name", function() {
