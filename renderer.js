@@ -43,6 +43,14 @@ function openFile() {
         if (err) throw err;
         codemirror.setValue(data.toString());
         activeDir = path.dirname(filesToOpen[0]);
+        bot.setActivity({
+            details: `Editing ${path.basename(filesToOpen[0])}`,
+            state: `Working on ${activeDir.split(path.sep).slice(-1)[0]}`,
+            largeImageKey: "generic_file",
+            largeImageText: `Editing a ${path.extname(filesToOpen[0])} file`,
+            smallImageKey: "logo",
+            smallImageText: "Voxyl Editor"
+        }).catch((reason)=>console.error(reason));
         changeActiveDir();
     });
 }
