@@ -6,6 +6,7 @@ var rpc = require("discord-rpc");
 var bot = new rpc.Client({transport:"ipc"});
 
 var activeDir = null;
+var activeFile = null;
 var codemirror = new CodeMirror($(".editor")[0], {
     lineNumbers: true,
     lineWrapping: true,
@@ -32,6 +33,18 @@ function changeActiveDir() {
 }
 
 function openFile() {
+    if (activeFile != null) {
+        var wantToSave = remote.dialog.showMessageBox({
+            title: "Save changes",
+            message: "Do you want to save changes to the current file?",
+            buttons: ["Save", "Don't save", "Cancel"]
+        });
+        if (wantToSave == 0) {
+            saveFile();
+        } else if (wantToSave == 2) {
+            return;
+        }
+    }
     var filesToOpen = remote.dialog.showOpenDialog({
         title: "Open a file",
         properties: ["openFile"]
@@ -43,15 +56,41 @@ function openFile() {
         if (err) throw err;
         codemirror.setValue(data.toString());
         activeDir = path.dirname(filesToOpen[0]);
+        activeFile = filesToOpen[0];
         bot.setActivity({
             details: `Editing ${path.basename(filesToOpen[0])}`,
             state: `Working on ${activeDir.split(path.sep).slice(-1)[0]}`,
             largeImageKey: "generic_file",
-            largeImageText: `Editing a ${path.extname(filesToOpen[0])} file`,
+            largeImageText: `Editing ${path.basename(filesToOpen[0])}`,
             smallImageKey: "logo",
             smallImageText: "Voxyl Editor"
         }).catch((reason)=>console.error(reason));
         changeActiveDir();
+    });
+}
+
+function saveFileAs() {
+    var fileToSave = remote.dialog.showSaveDialog({
+        title: "Save as",
+        buttonLabel: "Save as",
+        defaultPath: activeDir
+    });
+    if (fileToSave.length == 0) {
+        return;
+    }
+    var data = Buffer.from(codemirror.getValue());
+    fs.writeFile(fileToSave, data, (err) => {
+        if (err) throw err;
+    });
+}
+
+function saveFile() {
+    if (activeFile == null) {
+        return saveFileAs();
+    }
+    var data = Buffer.from(codemirror.getValue());
+    fs.writeFile(activeFile, data, (err) => {
+        if (err) throw err;
     });
 }
 
@@ -79,10 +118,12 @@ $("#title-ctx-menu").click(function() {
         click: openFile
     }));
     ctxMenu.append(new MenuItem({
-        label: "Save"
+        label: "Save",
+        click: saveFile
     }));
     ctxMenu.append(new MenuItem({
-        label: "Save As"
+        label: "Save As",
+        click: saveFileAs
     }));
     ctxMenu.popup({});
 });
