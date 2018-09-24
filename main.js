@@ -9,7 +9,7 @@ app.on('ready', () => {
         width: 800,
         frame: false,
         resizable: true,
-        backgroundColor: "#2f3136",
+        backgroundColor: "#263238",
         webPreferences: {
             zoomFactor: 1
         },

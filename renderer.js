@@ -22,7 +22,7 @@ function changeActiveDir() {
         if (err) throw err;
         $(".sidebar").html(`<div class="proj-dir">${activeDir.split(path.sep).slice(-1)[0]}</div><div class="dir-contents"></div>`);
         for (var i = 0; i < data.length; i++) {
-            var stats = fs.statSync(data[i]);
+            var stats = fs.statSync(path.join(activeDir, data[i]));
             if (stats.isFile()) {
                 $(".sidebar .dir-contents").append(`<div class="file"><i class="far fa-file"></i> ${path.basename(data[i])}</div>`);
             } else {
@@ -57,14 +57,8 @@ function openFile() {
         codemirror.setValue(data.toString());
         activeDir = path.dirname(filesToOpen[0]);
         activeFile = filesToOpen[0];
-        bot.setActivity({
-            details: `Editing ${path.basename(filesToOpen[0])}`,
-            state: `Working on ${activeDir.split(path.sep).slice(-1)[0]}`,
-            largeImageKey: "generic_file",
-            largeImageText: `Editing ${path.basename(filesToOpen[0])}`,
-            smallImageKey: "logo",
-            smallImageText: "Voxyl Editor"
-        }).catch((reason)=>console.error(reason));
+        updateRPC();
+        $(".tabs .tab.active .name").html(path.basename(filesToOpen[0]));
         changeActiveDir();
     });
 }
@@ -148,25 +142,38 @@ function addTab(name) {
     $('.title .tabs').append(`<div class="tab"><div class="name">${name}</div><div class="close"><i class="fas fa-times"></i></div></div>`);
 }
 
-
 $(document).on("click", ".title .tabs .tab .name", function() {
     $(".title .tabs .tab").removeClass("active");
     $(this).parent().addClass("active");
 });
 
 $(document).on("click", ".title .tabs .tab .close", function() {
-    $(this).parent().remove();
+    var tab = $(this).parent();
+    if (tab.hasClass("active")) {
+        tab.remove();
+        $(".title .tabs").children(":first").addClass("active");
+    } else {
+        tab.remove();
+    }
+    if ($(".title .tabs").children().length == 0) {
+
+    }
 });
 
-bot.on("ready",function(){
+function updateRPC() {
     bot.setActivity({
-        details: "Editing some code",
-        state: "Working on a project",
-        largeImageKey: "generic_file",
-        largeImageText: "Editing a file",
+        details: activeFile ? `Editing ${path.basename(activeFile)}` : "Idle",
+        state: activeDir ? `Working on ${activeDir.split(path.sep).slice(-1)[0]}` : "No project",
+        largeImageKey: activeFile ? "generic_file" : "idle",
+        largeImageText: activeFile ? `Editing ${path.basename(activeFile)}` : "Idle",
         smallImageKey: "logo",
-        smallImageText: "Voxyl Editor"
+        smallImageText: "Voxyl Editor",
+        startTimestamp: new Date()
     }).catch((reason)=>console.error(reason));
+}
+
+bot.on("ready",function(){
+    updateRPC();
 });
 
 module.exports = {addTab}
