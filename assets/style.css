@@ -8,6 +8,7 @@ body {
     display: flex;
     flex-direction: column;
     height: 100vh;
+    overflow: hidden;
 }
 
 .editor-container {
@@ -163,6 +164,11 @@ body {
 
 .title .tabs .tab:not(.active):hover {
     background-color: rgba(255,255,255,.1);
+}
+
+.title .tabs .tab.ui-sortable-helper {
+    box-shadow: 0 19px 38px rgba(0,0,0,0.30), 0 15px 12px rgba(0,0,0,0.22);
+    backdrop-filter: blur(5px);
 }
 
 .editor {
