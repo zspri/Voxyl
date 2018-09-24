@@ -144,9 +144,18 @@ $("#title-ctx-menu").click(function() {
     ctxMenu.popup({});
 });
 
-$(".title .tabs .tab").click(function() {
+function addTab(name) {
+    $('.title .tabs').append(`<div class="tab"><div class="name">${name}</div><div class="close"><i class="fas fa-times"></i></div></div>`);
+}
+
+
+$(document).on("click", ".title .tabs .tab .name", function() {
     $(".title .tabs .tab").removeClass("active");
-    $(this).addClass("active");
+    $(this).parent().addClass("active");
+});
+
+$(document).on("click", ".title .tabs .tab .close", function() {
+    $(this).parent().remove();
 });
 
 bot.on("ready",function(){
@@ -160,4 +169,5 @@ bot.on("ready",function(){
     }).catch((reason)=>console.error(reason));
 });
 
+module.exports = {addTab}
 bot.login({clientId:"493464313739214858",clientSecret:""}).catch((reason)=>console.error(reason));
