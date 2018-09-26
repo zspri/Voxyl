@@ -7,11 +7,8 @@ var bot = new rpc.Client({transport:"ipc"});
 
 var activeDir = null;
 var activeFile = null;
-var codemirror = new CodeMirror($(".editor")[0], {
-    lineNumbers: true,
-    lineWrapping: true,
-    autofocus: true
-});
+var editors = {};
+var nToAssignTab = 0;
 
 function changeActiveDir() {
     if (activeDir == null) {
@@ -21,19 +18,21 @@ function changeActiveDir() {
     fs.readdir(activeDir, (err, data) => {
         if (err) throw err;
         $(".sidebar").html(`<div class="proj-dir">${activeDir.split(path.sep).slice(-1)[0]}</div><div class="dir-contents"></div>`);
+        var files = "", dirs = "";
         for (var i = 0; i < data.length; i++) {
             var stats = fs.statSync(path.join(activeDir, data[i]));
             if (stats.isFile()) {
-                $(".sidebar .dir-contents").append(`<div class="file"><i class="far fa-file"></i> ${path.basename(data[i])}</div>`);
+                files += `<div class="file"><i class="far fa-file"></i> <span>${path.basename(data[i])}</span></div>`
             } else {
-                $(".sidebar .dir-contents").append(`<div class="folder"><i class="far fa-folder"></i> ${path.basename(data[i])}</div>`);
+                dirs += `<div class="folder"><i class="far fa-folder"></i> <span>${path.basename(data[i])}</span></div>`
             }
         }
+        $(".sidebar .dir-contents").append(`<div class="dirs">${dirs}</div><div class="files">${files}</div>`);
     });
 }
 
 function openFile() {
-    if (activeFile != null) {
+    /*if (activeFile != null) {
         var wantToSave = remote.dialog.showMessageBox({
             title: "Save changes",
             message: "Do you want to save changes to the current file?",
@@ -44,7 +43,7 @@ function openFile() {
         } else if (wantToSave == 2) {
             return;
         }
-    }
+    }*/
     var filesToOpen = remote.dialog.showOpenDialog({
         title: "Open a file",
         properties: ["openFile"]
@@ -54,8 +53,8 @@ function openFile() {
     }
     fs.readFile(filesToOpen[0], (err, data) => {
         if (err) throw err;
-        addTab(path.basename(filesToOpen[0]));
-        codemirror.setValue(data.toString());
+        var editor = addTab(path.basename(filesToOpen[0]));
+        editor.editor.setValue(data.toString());
         activeDir = path.dirname(filesToOpen[0]);
         activeFile = filesToOpen[0];
         updateRPC();
@@ -72,7 +71,8 @@ function saveFileAs() {
     if (fileToSave.length == 0) {
         return;
     }
-    var data = Buffer.from(codemirror.getValue());
+    var editor = editors[$(".tabs .tab.active").attr("id")];
+    var data = Buffer.from(editor.editor.getValue());
     fs.writeFile(fileToSave, data, (err) => {
         if (err) throw err;
     });
@@ -82,7 +82,8 @@ function saveFile() {
     if (activeFile == null) {
         return saveFileAs();
     }
-    var data = Buffer.from(codemirror.getValue());
+    var editor = editors[$(".tabs .tab.active").attr("id")];
+    var data = Buffer.from(editor.editor.getValue());
     fs.writeFile(activeFile, data, (err) => {
         if (err) throw err;
     });
@@ -145,29 +146,55 @@ $("#title-ctx-menu").click(function() {
 
 function addTab(name) {
     $(".title .tabs .tab").removeClass("active");
-    $('.title .tabs').append(`<div class="tab active"><div class="name">${name}</div><div class="close"><i class="fas fa-times"></i></div></div>`);
+    $('.title .tabs').append(`<div class="tab active" id="tab-${nToAssignTab}"><div class="name">${name}</div><div class="close"><i class="fas fa-times"></i></div></div>`);
+    $(".editor").removeClass("active");
+    $(".editor-container").append(`<div class="editor active" data-for="tab-${nToAssignTab}"></div>`);
+    var editorForTab = {
+        "object": $(`.editor[data-for='tab-${nToAssignTab}']`),
+        "editor": new CodeMirror($(".editor.active")[0], {
+            lineNumbers: true,
+            lineWrapping: true,
+            autofocus: true
+        })
+    }
+    editors[`tab-${nToAssignTab}`] = editorForTab;
+    nToAssignTab += 1;
+    return editorForTab;
 }
 
 $(document).on("click", ".title .tabs .tab .name", function() {
+    var tab = $(this).parent();
     $(".title .tabs .tab").removeClass("active");
-    $(this).parent().addClass("active");
+    tab.addClass("active");
+    $(".editor").removeClass("active");
+    $(`.editor[data-for='${tab.attr("id")}']`).addClass("active");
+    updateRPC();
 });
 
 $(document).on("click", ".title .tabs .tab .close", function() {
     var tab = $(this).parent();
+    var oldEditor = editors[tab.attr("id")];
     if (tab.hasClass("active")) {
         tab.remove();
-        $(".title .tabs").children(":first").addClass("active");
+        var newTab = $(".title .tabs").children(":first");
+        if (newTab.attr("id") === undefined) {
+        } else {
+            newTab.addClass("active");
+            editors[newTab.attr("id")].object.addClass("active");
+        }
     } else {
         tab.remove();
     }
+    oldEditor.object.remove();
+    delete oldEditor;
+    updateRPC();
     if ($(".title .tabs").children().length == 0) {
 
     }
 });
 
 function updateRPC() {
-    bot.setActivity({
+    var rpcObj = {
         details: activeFile ? `Editing ${path.basename(activeFile)}` : "Idle",
         state: activeDir ? `Working on ${activeDir.split(path.sep).slice(-1)[0]}` : "No project",
         largeImageKey: activeFile ? "generic_file" : "idle",
@@ -175,12 +202,15 @@ function updateRPC() {
         smallImageKey: "logo",
         smallImageText: "Voxyl Editor",
         startTimestamp: new Date()
-    }).catch((reason)=>console.error(reason));
+    };
+    console.debug("%cRPC Emit", "font-weight: bold;", rpcObj);
+    bot.setActivity(rpcObj).catch((reason)=>console.error(reason));
 }
 
 bot.on("ready",function(){
     updateRPC();
 });
 
-module.exports = {addTab}
+addTab("Untitled");
+module.exports = {addTab, editors, activeFile, activeDir};
 bot.login({clientId:"493464313739214858",clientSecret:""}).catch((reason)=>console.error(reason));
