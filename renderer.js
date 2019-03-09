@@ -68,13 +68,14 @@ function saveFileAs() {
         buttonLabel: "Save as",
         defaultPath: activeDir
     });
-    if (fileToSave.length == 0) {
+    if (fileToSave === undefined) {
         return;
     }
     var editor = editors[$(".tabs .tab.active").attr("id")];
     var data = Buffer.from(editor.editor.getValue());
     fs.writeFile(fileToSave, data, (err) => {
         if (err) throw err;
+        activeFile = fileToSave;
     });
 }
 
@@ -83,6 +84,9 @@ function saveFile() {
         return saveFileAs();
     }
     var editor = editors[$(".tabs .tab.active").attr("id")];
+    console.log(editor);
+    console.log($(".tabs .tab.active").attr("id"));
+    console.log(activeFile);
     var data = Buffer.from(editor.editor.getValue());
     fs.writeFile(activeFile, data, (err) => {
         if (err) throw err;
@@ -168,6 +172,7 @@ $(document).on("click", ".title .tabs .tab .name", function() {
     tab.addClass("active");
     $(".editor").removeClass("active");
     $(`.editor[data-for='${tab.attr("id")}']`).addClass("active");
+    activeFile = $(this).html();
     updateRPC();
 });
 
